@@ -2,7 +2,7 @@ from langchain_community.llms import HuggingFacePipeline
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnableSequence
+from langchain_core.runnables import RunnableSequence, RunnableLambda
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
 
@@ -23,7 +23,15 @@ prompt1 = PromptTemplate(
 
 parser = StrOutputParser()
 
-chain = RunnableSequence(prompt1, llm, parser)
+# Lambda function to count words and return joke with count
+def count_words(text):
+    word_count = len(text.split())
+    return f"Joke: {text}\n\nWord count: {word_count}"
+
+# Create lambda runnable
+word_counter = RunnableLambda(count_words)
+
+chain = RunnableSequence(prompt1, llm, parser, word_counter)
 
 result = chain.invoke({'topic': 'AI'})
 print(result)
